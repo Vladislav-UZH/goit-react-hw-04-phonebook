@@ -1,4 +1,3 @@
-import { Component } from 'react';
 // Styles
 import { Container, Input, Label, ErrorNotify } from './ContactsForm.styled';
 import { CreateContactBtn } from 'components/Button/Button.styled';
@@ -20,63 +19,60 @@ const schema = Yup.object().shape({
     .required('You forgot to enter a number!')
     .phone('UA', true, 'Enter UA number format!'),
 });
-// phoneNumberMask
 
 // Form
-class ContactsForm extends Component {
-  static propTypes = {
-    createContact: PropTypes.func.isRequired,
-  };
-  handleSubmit = (values, { resetForm }) => {
+const ContactsForm = ({ createContact }) => {
+  const handleSubmit = (values, { resetForm }) => {
     const { name, number } = values;
-    const { createContact } = this.props;
     const contactData = { name, number };
     resetForm();
     return createContact(contactData);
   };
 
-  render() {
-    return (
-      <Formik
-        initialValues={{
-          name: '',
-          number: '',
-        }}
-        validationSchema={schema}
-        onSubmit={this.handleSubmit}
-      >
-        <Container autoComplete="off">
-          <div>
-            <Label>
-              Name
-              <Input
-                type="text"
-                name="name"
-                placeholder="Enter name"
-                title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-              />
-            </Label>
+  return (
+    <Formik
+      initialValues={{
+        name: '',
+        number: '',
+      }}
+      validationSchema={schema}
+      onSubmit={handleSubmit}
+    >
+      <Container autoComplete="off">
+        <div>
+          <Label>
+            Name
+            <Input
+              type="text"
+              name="name"
+              placeholder="Enter name"
+              title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+            />
+          </Label>
 
-            <ErrorNotify name="name" component="div" />
-          </div>
-          <div>
-            <Label>
-              Number
-              <Input
-                type="tel"
-                name="number"
-                id="phone"
-                placeholder="Enter number"
-                title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-              />
-            </Label>
+          <ErrorNotify name="name" component="div" />
+        </div>
+        <div>
+          <Label>
+            Number
+            <Input
+              type="tel"
+              name="number"
+              id="phone"
+              placeholder="Enter number"
+              title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+            />
+          </Label>
 
-            <ErrorNotify name="number" component="div" />
-          </div>
-          <CreateContactBtn type="submit">Add</CreateContactBtn>
-        </Container>
-      </Formik>
-    );
-  }
-}
+          <ErrorNotify name="number" component="div" />
+        </div>
+        <CreateContactBtn type="submit">Add</CreateContactBtn>
+      </Container>
+    </Formik>
+  );
+};
+
+ContactsForm.propTypes = {
+  createContact: PropTypes.func.isRequired,
+};
 export default ContactsForm;

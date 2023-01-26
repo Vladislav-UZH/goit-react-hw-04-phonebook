@@ -1,4 +1,5 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
+
 // Components
 import ContactsForm from 'components/ContactsForm';
 import ContactsList from 'components/ContactsList/ContactsList';
@@ -7,140 +8,140 @@ import Notification from 'components/Notification';
 import { BsPencilFill } from 'react-icons/bs';
 // nanoid
 import { nanoid } from 'nanoid';
+// styles
 import { AddContactsBtn } from '../Button/Button.styled';
+
 //___APP___
-export class App extends Component {
-  state = {
-    contacts: [],
-    //   [
-    //   { id: 'id-1', name: 'Rosie Simpson', number: '098-396-56-58' },
-    //   { id: 'id-2', name: 'Hermione Kline', number: '050-966-23-50' },
-    //   { id: 'id-3', name: 'Eden Clements', number: '099-663-10-22' },
-    //   { id: 'id-4', name: 'Annie Copeland', number: '099-423-66-19' },
-    // ]
-    filter: '',
-    isOpen: false,
-  };
-  componentDidMount() {
-    const contacts = this.getActualcontacts('contacts');
-    if (contacts) {
-      this.setState({ contacts });
-    }
+
+const setActualContacts = (key, value) => {
+  try {
+    const serializedstate = JSON.stringify(value);
+    localStorage.setItem(key, serializedstate);
+  } catch (err) {
+    console.error('Set state error:', err);
   }
+};
 
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-    if (prevState.contacts !== contacts) {
-      this.setActualContacts('contacts', contacts);
-    }
+const getActualContacts = key => {
+  try {
+    const serializedstate = localStorage.getItem(key);
+
+    return !serializedstate ? undefined : JSON.parse(serializedstate);
+  } catch (err) {
+    console.error('Get state error:', err);
   }
+};
 
-  setActualContacts = (key, value) => {
-    try {
-      const serializedstate = JSON.stringify(value);
-      localStorage.setItem(key, serializedstate);
-    } catch (err) {
-      console.error('Set state error:', err);
-    }
-  };
-
-  getActualcontacts = key => {
-    try {
-      const serializedstate = localStorage.getItem(key);
-
-      return !serializedstate ? undefined : JSON.parse(serializedstate);
-    } catch (err) {
-      console.error('Get state error:', err);
-    }
-  };
-
-  createContact = ({ name, number }) => {
-    const id = nanoid();
-    if (this.checkContactsForComplinance({ name, number })) {
-      return this.notification(name);
-    }
-    this.toggleContactBar();
-    this.setState(({ contacts }) => {
-      return { name, contacts: [{ name, number, id }, ...contacts] };
-    });
-  };
-
-  deleteContact = id => {
-    this.setState(({ contacts }) => {
-      return {
-        contacts: contacts.filter(contact => contact.id !== id),
-      };
-    });
-    console.log('delete');
-  };
-  checkContactsForComplinance = ({ name: newName }) => {
-    return this.state.contacts.find(({ name }) => name === newName);
-  };
-  notification = name => {
+const getInitContacts = (key = 'contacts') => {
+  if (getActualContacts(key)) {
+    return getActualContacts(key);
+  } else {
+    console.log('no contacts there');
+  }
+};
+export const App = () => {
+  // [
+  //   { id: 'id-1', name: 'Rosie Simpson', number: '098-396-56-58' },
+  //   { id: 'id-2', name: 'Hermione Kline', number: '050-966-23-50' },
+  //   { id: 'id-3', name: 'Eden Clements', number: '099-663-10-22' },
+  //   { id: 'id-4', name: 'Annie Copeland', number: '099-423-66-19' },
+  // ]
+  const [contacts, setContacts] = useState(getInitContacts());
+  const [filter, setFilter] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  // effects
+  useEffect(() => {
+    setActualContacts('contacts', contacts);
+  }, [contacts]);
+  // methods
+  // notify
+  const notification = name => {
     alert(`You have already had ${name} as contact!`);
   };
-  changeFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
+
+  // filter
+
+  const changeFilter = e => {
+    const value = e.currentTarget.value;
+    setFilter(value);
   };
-  getFiltredContacts = () => {
-    const { contacts, filter } = this.state;
+  const getFiltredContacts = () => {
     const normalizedFilter = filter.toLowerCase();
     return contacts.filter(({ name }) =>
       name.toLowerCase().includes(normalizedFilter)
     );
   };
-  toggleContactsListOrNotification = () => {
-    return !this.getFiltredContacts().length ? (
+  // checkers
+  const checkContactsForComplinance = ({ name: newName }) =>
+    contacts.find(({ name }) => name === newName);
+  //
+
+  // toggles
+  const toggleContactsListOrNotification = () => {
+    return !getFiltredContacts().length ? (
       <Notification message="No contacts with the entered name!" />
     ) : (
       <ContactsList
-        deleteContact={this.deleteContact}
-        contacts={this.getFiltredContacts()}
+        deleteContact={deleteContact}
+        contacts={getFiltredContacts()}
       />
     );
   };
-  toggleContactBar = () => {
-    this.setState(prevState => ({ isOpen: !prevState.isOpen }));
+  const toggleContactBar = () => {
+    setIsOpen(!isOpen);
+  };
+  // create contact
+  const createContact = ({ name, number }) => {
+    const id = nanoid();
+    if (checkContactsForComplinance({ name, number })) {
+      return notification(name);
+    }
+
+    toggleContactBar();
+    setContacts([{ name, number, id }, ...contacts]);
   };
 
-  render() {
-    const { filter } = this.state;
-    return (
+  //delete contact
+  const deleteContact = id => {
+    setContacts(contacts.filter(contact => contact.id !== id));
+  };
+
+  // render
+  return (
+    <div
+      style={{
+        padding: 20,
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
+        color: '#DBD7D7',
+      }}
+    >
       <div
         style={{
-          padding: 20,
-          display: 'flex',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          alignItems: 'center',
-          color: '#DBD7D7',
+          minWidth: 680,
+          borderRadius: 10,
+          padding: 30,
+          backgroundColor: '#32343B',
         }}
       >
-        <div
-          style={{
-            minWidth: 680,
-            borderRadius: 10,
-            padding: 30,
-            backgroundColor: '#32343B',
-          }}
-        >
-          <div></div>
-          <h1>Phonebook</h1>{' '}
-          {this.state.isOpen || !!this.state.contacts.length ? (
-            <ContactsForm createContact={this.createContact} />
-          ) : (
-            <AddContactsBtn onClick={this.toggleContactBar}>
-              Add your contacts
-              <BsPencilFill size={40} />
-            </AddContactsBtn>
-          )}
-          <div>
-            <h2>Contacts</h2>
-            <Filter value={filter} onChange={this.changeFilter} />
-          </div>
-          {this.toggleContactsListOrNotification()}
+        <div></div>
+        <h1>Phonebook</h1>{' '}
+        {isOpen || !!contacts.length ? (
+          <ContactsForm createContact={createContact} />
+        ) : (
+          <AddContactsBtn onClick={toggleContactBar}>
+            Add your contacts
+            <BsPencilFill size={40} />
+          </AddContactsBtn>
+        )}
+        <div>
+          <h2>Contacts</h2>
+          <Filter value={filter} onChange={changeFilter} />
         </div>
+        {toggleContactsListOrNotification()}
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
