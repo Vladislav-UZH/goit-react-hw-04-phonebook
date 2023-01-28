@@ -26,7 +26,7 @@ const getActualContacts = key => {
   try {
     const serializedstate = localStorage.getItem(key);
 
-    return !serializedstate ? undefined : JSON.parse(serializedstate);
+    return !serializedstate ? [] : JSON.parse(serializedstate);
   } catch (err) {
     console.error('Get state error:', err);
   }
@@ -49,17 +49,13 @@ export const App = () => {
   const [contacts, setContacts] = useState(getInitContacts());
   const [filter, setFilter] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  // effects
   useEffect(() => {
     setActualContacts('contacts', contacts);
   }, [contacts]);
-  // methods
-  // notify
+
   const notification = name => {
     alert(`You have already had ${name} as contact!`);
   };
-
-  // filter
 
   const changeFilter = e => {
     const value = e.currentTarget.value;
@@ -71,26 +67,12 @@ export const App = () => {
       name.toLowerCase().includes(normalizedFilter)
     );
   };
-  // checkers
   const checkContactsForComplinance = ({ name: newName }) =>
     contacts.find(({ name }) => name === newName);
-  //
 
-  // toggles
-  const toggleContactsListOrNotification = () => {
-    return !getFiltredContacts().length ? (
-      <Notification message="No contacts with the entered name!" />
-    ) : (
-      <ContactsList
-        deleteContact={deleteContact}
-        contacts={getFiltredContacts()}
-      />
-    );
-  };
   const toggleContactBar = () => {
     setIsOpen(!isOpen);
   };
-  // create contact
   const createContact = ({ name, number }) => {
     const id = nanoid();
     if (checkContactsForComplinance({ name, number })) {
@@ -101,7 +83,6 @@ export const App = () => {
     setContacts([{ name, number, id }, ...contacts]);
   };
 
-  //delete contact
   const deleteContact = id => {
     setContacts(contacts.filter(contact => contact.id !== id));
   };
@@ -140,7 +121,14 @@ export const App = () => {
           <h2>Contacts</h2>
           <Filter value={filter} onChange={changeFilter} />
         </div>
-        {toggleContactsListOrNotification()}
+        {!getFiltredContacts().length ? (
+          <Notification message="No contacts with the entered name!" />
+        ) : (
+          <ContactsList
+            deleteContact={deleteContact}
+            contacts={getFiltredContacts()}
+          />
+        )}
       </div>
     </div>
   );
