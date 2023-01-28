@@ -26,7 +26,12 @@ const getActualContacts = key => {
   try {
     const serializedstate = localStorage.getItem(key);
 
-    return !serializedstate ? [] : JSON.parse(serializedstate);
+    return !serializedstate
+      ? () => {
+          console.log('localStorage is empty');
+          return [];
+        }
+      : JSON.parse(serializedstate);
   } catch (err) {
     console.error('Get state error:', err);
   }
